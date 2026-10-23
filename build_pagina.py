@@ -11,7 +11,7 @@ PORTAL = Path("/Volumes/NAUBER/portal-nauber/public/curso-segmentacao")
 REPO = "https://github.com/naubergois/curso-segmentacao-colab"
 
 ROTULO = {1: "Imagem", 2: "Vídeo", 3: "Medida", 4: "Treino"}
-CAPA = {1: "onibus-seg.jpg", 2: "patio-seg.jpg", 3: "medida-seg.jpg", 4: "poligono-seg.jpg"}
+CAPA = {1: "enfermaria-seg.jpg", 2: "obra-seg.jpg", 3: "operarios-seg.jpg", 4: "canteiro-seg.jpg"}
 
 
 def inline(texto):
@@ -43,10 +43,10 @@ def pagina():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Segmentação na prática: a forma, não só a caixa | Nauber Gois</title>
-<meta name="description" content="Quatro notebooks de segmentação com YOLOv8 que abrem no Google Colab: máscara em imagem, em vídeo, medida da área e treino com polígono.">
+<meta name="description" content="Segmentação com YOLOv8 no Colab, em foto de enfermaria e em obra: máscara, vídeo, medida da área e treino com polígono.">
 <meta property="og:title" content="Segmentação na prática, direto no Colab">
-<meta property="og:description" content="A caixa leva o céu junto. A máscara fica no objeto. Quatro notebooks e 24 exercícios.">
-<meta property="og:image" content="https://naubergois.com/curso-segmentacao/assets/onibus-seg.jpg">
+<meta property="og:description" content="A caixa do leito leva o chão junto. A máscara fica no objeto. Enfermaria e canteiro de obras, no Colab.">
+<meta property="og:image" content="https://naubergois.com/curso-segmentacao/assets/enfermaria-seg.jpg">
 <style>
   :root {{
     --bg: #0d1117; --card: #161b22; --line: #30363d;
@@ -109,57 +109,57 @@ def pagina():
 <main>
   <header>
     <h1>Segmentação na prática: <span>a forma, não só a caixa</span></h1>
-    <p class="lead">O retângulo em volta do ônibus leva junto o asfalto, a calçada e um pedaço do céu. A segmentação devolve o contorno: uma máscara só com os pixels do objeto.</p>
-    <p class="lead">São quatro notebooks curtos. Cada um abre no Google Colab, instala o que precisa e roda com uma foto e um vídeo de menos de 10 MB. Não precisa instalar nada no seu computador.</p>
-    <p class="lead">São 24 exercícios, seis por aula, e cada um tem um notebook próprio. Você escreve a resposta, roda a célula e o notebook diz na hora se acertou. <a href="#exercicios">Ver os 24 exercícios</a>.</p>
+    <p class="lead">O retângulo em volta do leito leva junto o chão, a cortina e um pedaço da parede. Na obra, a caixa do operário leva a picareta, a lama e um pedaço do céu. A segmentação devolve o contorno: uma máscara só com os pixels do objeto.</p>
+    <p class="lead">As fotos são de enfermaria e de canteiro. O modelo conhece leito, cadeira, pessoa e caminhão. Trinca no concreto e estrutura numa foto clínica ficam de fora: isso pede o contorno marcado à mão.</p>
+    <p class="lead">Cada notebook abre no Google Colab. Você escreve a resposta, roda a célula e ele diz na hora se acertou. <a href="#exercicios">Ver os 24 exercícios</a>.</p>
   </header>
 
   <div class="hero">
-    <img src="assets/onibus-seg.jpg" alt="Máscara colorida sobre o ônibus e as pessoas, sem retângulo">
+    <img src="assets/enfermaria-seg.jpg" alt="Máscaras coloridas sobre os leitos e as cadeiras da enfermaria, sem retângulo">
   </div>
 
   <h2>As aulas</h2>
   <div class="aulas">
 
     <article class="aula">
-      <div class="midia"><img src="assets/onibus-seg.jpg" alt="Máscaras desenhadas na foto do ônibus, sem caixas" loading="lazy"></div>
+      <div class="midia"><img src="assets/enfermaria-seg.jpg" alt="Máscaras sobre os leitos e as cadeiras, sem caixa" loading="lazy"></div>
       <div class="corpo">
         <span class="num">AULA 1</span>
         <h3>Segmentação em imagem</h3>
-        <p>Uma linha de código e a foto volta com caixas e máscaras. Cada máscara é uma grade de verdadeiro ou falso, e somar os pixels verdadeiros dá a área do objeto.</p>
+        <p>O quarto de hospital volta com uma máscara por leito e por cadeira. Cada máscara é uma grade de verdadeiro ou falso, e somar os pixels verdadeiros dá a área do objeto.</p>
         <div class="meta">CPU · cerca de 1 minuto · 6 exercícios</div>
         <a class="botao" href="{colab_url("notebooks/01-segmentacao-em-imagem.ipynb")}" target="_blank" rel="noopener">Abrir no Colab</a>
       </div>
     </article>
 
     <article class="aula">
-      <div class="midia"><img src="assets/patio-seg.jpg" alt="Pessoas no pátio pintadas pela máscara, sem retângulo" loading="lazy"></div>
+      <div class="midia"><img src="assets/obra-seg.jpg" alt="Operários e máquinas na obra de rodovia, pintados pela máscara, sem retângulo" loading="lazy"></div>
       <div class="corpo">
         <span class="num">AULA 2</span>
         <h3>Segmentação em vídeo</h3>
-        <p>O laço é ler o quadro, segmentar, desenhar e gravar. No fim, a conta que importa é quantos pixels cada classe ocupou, não só quantas vezes apareceu.</p>
+        <p>O clipe é uma obra de rodovia. O laço lê o quadro, segmenta e grava. A escavadeira não tem classe própria: o nome que volta costuma ser trem ou caminhão. A conta que importa é a área.</p>
         <div class="meta">CPU · cerca de 2 minutos · 6 exercícios</div>
         <a class="botao" href="{colab_url("notebooks/02-segmentacao-em-video.ipynb")}" target="_blank" rel="noopener">Abrir no Colab</a>
       </div>
     </article>
 
     <article class="aula">
-      <div class="midia"><img src="assets/medida-seg.jpg" alt="Centro marcado na máscara, sem retângulo" loading="lazy"></div>
+      <div class="midia"><img src="assets/operarios-seg.jpg" alt="Operários na obra com o centro da máscara marcado, sem retângulo" loading="lazy"></div>
       <div class="corpo">
         <span class="num">AULA 3</span>
         <h3>Medir a máscara</h3>
-        <p>A máscara vira número: a porcentagem da foto, o centro do objeto, o IoU com a caixa e quais formas se encostam.</p>
+        <p>A máscara do operário vira número: a porcentagem da foto, o centro do corpo, o quanto a caixa sobra e se as duas pessoas se encostam.</p>
         <div class="meta">CPU · cerca de 1 minuto · 6 exercícios</div>
         <a class="botao" href="{colab_url("notebooks/03-medir-a-mascara.ipynb")}" target="_blank" rel="noopener">Abrir no Colab</a>
       </div>
     </article>
 
     <article class="aula">
-      <div class="midia"><img src="assets/poligono-seg.jpg" alt="Polígono pintado em cima da foto de treino, sem caixa" loading="lazy"></div>
+      <div class="midia"><img src="assets/canteiro-seg.jpg" alt="Caminhões no canteiro pintados pela máscara, sem retângulo" loading="lazy"></div>
       <div class="corpo">
         <span class="num">AULA 4</span>
         <h3>Treinar segmentação</h3>
-        <p>O rótulo deixa de ser um retângulo e vira um polígono. O treino é a mesma chamada, com uma perda a mais para o contorno. Quatro fotos mostram o caminho. Um modelo bom pede centenas.</p>
+        <p>O rótulo deixa de ser um retângulo e vira um polígono. Quatro fotos mostram o caminho. No canteiro, o modelo ainda pinta o caminhão. A trinca no solo continua sem máscara.</p>
         <div class="meta">GPU T4 recomendada · cerca de 3 minutos · 6 exercícios</div>
         <a class="botao" href="{colab_url("notebooks/04-treinar-segmentacao.ipynb")}" target="_blank" rel="noopener">Abrir no Colab</a>
       </div>
@@ -185,7 +185,8 @@ def pagina():
   <footer>
     O código está em <a href="{REPO}">github.com/naubergois/curso-segmentacao-colab</a>.
     A detecção com caixas está em <a href="https://naubergois.com/curso-yolo/">YOLO na prática</a>.
-    Foto e vídeo de exemplo: <a href="https://github.com/ultralytics/assets">Ultralytics</a>.
+    Enfermaria: Tomasz Sienicki, domínio público. Operários: Justine Belson, U.S. Fish and Wildlife Service, domínio público.
+    Canteiro: Neb, CC BY-SA 4.0. Vídeo da obra da D8: Juandev, CC BY-SA 3.0. Tudo via Wikimedia Commons.
     <br>Nauber Gois · <a href="https://naubergois.com">naubergois.com</a>
   </footer>
 </main>

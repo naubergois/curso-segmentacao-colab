@@ -77,13 +77,15 @@ def _indices(nome):
     return [i for i, c in enumerate(_cls) if model.names[c] == nome]
 
 
-def _i_onibus():
-    return max(_indices("bus"), key=lambda i: (_xyxy[i][2] - _xyxy[i][0]) * (_xyxy[i][3] - _xyxy[i][1]))
-
-
-def _fracao_onibus():
-    uniao = np.any(mascaras[_indices("bus")], axis=0)
+def _fracao_leitos():
+    uniao = np.any(mascaras[_indices("bed")], axis=0)
     return float(uniao.mean())
+
+
+def _n_leitos():
+    indice = [i for i, nome in model.names.items() if nome == "bed"][0]
+    r = model(imagem, classes=[indice], verbose=False)[0]
+    return 0 if r.masks is None else len(r.masks)
 
 
 VERIFICAR = {
@@ -91,8 +93,8 @@ VERIFICAR = {
     2: lambda r: set(r) == {model.names[c] for c in _cls},
     3: lambda r: abs(float(r) - max(_conf)) < 1e-3,
     4: lambda r: int(r) == int(mascaras.sum(axis=(1, 2)).max()),
-    5: lambda r: int(r) == len(model(imagem, classes=[0], verbose=False)[0].masks),
-    6: lambda r: abs(float(r) - _fracao_onibus()) < 1e-3,
+    5: lambda r: int(r) == _n_leitos(),
+    6: lambda r: abs(float(r) - _fracao_leitos()) < 1e-3,
 }
 ''',
     "lista": [
@@ -121,16 +123,18 @@ VERIFICAR = {
             "solucao": "resposta = int(mascaras.sum(axis=(1, 2)).max())",
         },
         {
-            "titulo": "Só pessoas",
-            "enunciado": "Rode o modelo de novo na mesma foto, pedindo só pessoas com `classes=[0]`. Quantas máscaras vieram?",
-            "dica": "model(imagem, classes=[0], verbose=False)[0].masks",
-            "solucao": "resposta = len(model(imagem, classes=[0], verbose=False)[0].masks)",
+            "titulo": "Só os leitos",
+            "enunciado": "Rode o modelo de novo na mesma foto, pedindo só a classe `bed`. Quantas máscaras vieram? O índice da classe está em `model.names`.",
+            "dica": "Ache o índice de bed e passe em classes=[indice]. Se masks vier vazio, a conta é zero.",
+            "solucao": '''indice = [i for i, nome in model.names.items() if nome == "bed"][0]
+r = model(imagem, classes=[indice], verbose=False)[0]
+resposta = 0 if r.masks is None else len(r.masks)''',
         },
         {
-            "titulo": "O ônibus na foto",
-            "enunciado": "Que fração da foto a máscara do ônibus cobre? Se houver mais de um ônibus, una as máscaras. Responda com um número entre 0 e 1.",
+            "titulo": "Os leitos na foto",
+            "enunciado": "Que fração da foto os leitos cobrem, somando as máscaras de `bed`? Responda com um número entre 0 e 1.",
             "dica": "np.any junta máscaras, e .mean() num array booleano é a fração de True.",
-            "solucao": '''idx = [i for i, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "bus"]
+            "solucao": '''idx = [i for i, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "bed"]
 resposta = float(np.any(mascaras[idx], axis=0).mean())''',
         },
     ],
@@ -148,7 +152,7 @@ _cap.release()
 
 
 @lru_cache(None)
-def _pixels_cadeira_pulando():
+def _pixels_pessoa_pulando():
     cap = cv2.VideoCapture(video)
     total = 0
     for i in range(40):
@@ -161,7 +165,7 @@ def _pixels_cadeira_pulando():
         if r.masks is None:
             continue
         for c, m in zip(r.boxes.cls.int().tolist(), mascaras_originais(r)):
-            if model.names[c] == "chair":
+            if model.names[c] == "person":
                 total += int(m.sum())
     cap.release()
     return total
@@ -171,9 +175,9 @@ VERIFICAR = {
     1: lambda r: abs(float(r) - _total / _fps_arquivo) < 0.05,
     2: lambda r: r in {nome for nome, n in pixels.items() if n == max(pixels.values())},
     3: lambda r: int(r) == sum("person" in nomes for nomes in classes_por_quadro[:40]),
-    4: lambda r: int(r) == _pixels_cadeira_pulando(),
+    4: lambda r: int(r) == _pixels_pessoa_pulando(),
     5: lambda r: abs(float(r) - (sum(mascaras_por_quadro) / len(mascaras_por_quadro))) < 1e-3,
-    6: lambda r: Path(str(r)).name == "sala_plantas.mp4" and Path(str(r)).stat().st_size > 1000,
+    6: lambda r: Path(str(r)).name == "obra_pessoas.mp4" and Path(str(r)).stat().st_size > 1000,
 }
 ''',
     "lista": [
@@ -199,7 +203,7 @@ cap.release()''',
         },
         {
             "titulo": "Pular quadros",
-            "enunciado": "Nos primeiros 40 quadros, rode o modelo só em 1 a cada 5 (quadros 0, 5, 10...) e some os pixels das máscaras de `chair`.",
+            "enunciado": "Nos primeiros 40 quadros, rode o modelo só em 1 a cada 5 (quadros 0, 5, 10...) e some os pixels das máscaras de `person`.",
             "dica": "if i % 5: continue pula o quadro. mascaras_originais(r) devolve as máscaras no tamanho da foto.",
             "solucao": '''cap = cv2.VideoCapture(video)
 total = 0
@@ -213,7 +217,7 @@ for i in range(40):
     if r.masks is None:
         continue
     for c, m in zip(r.boxes.cls.int().tolist(), mascaras_originais(r)):
-        if model.names[c] == "chair":
+        if model.names[c] == "person":
             total += int(m.sum())
 cap.release()
 resposta = total''',
@@ -225,15 +229,15 @@ resposta = total''',
             "solucao": "resposta = sum(mascaras_por_quadro) / len(mascaras_por_quadro)",
         },
         {
-            "titulo": "Vídeo só com plantas",
-            "enunciado": "Grave um vídeo novo com os primeiros 40 quadros, desenhando só `potted plant`. A resposta é o caminho `sala_plantas.mp4`. O índice da classe está em `model.names`.",
+            "titulo": "Vídeo só com pessoas",
+            "enunciado": "Grave um vídeo novo com os primeiros 40 quadros, desenhando só `person`. A resposta é o caminho `obra_pessoas.mp4`. O índice da classe está em `model.names`.",
             "dica": "Passe classes=[indice] na chamada do modelo e grave com r.plot().",
-            "solucao": '''indice = [i for i, nome in model.names.items() if nome == "potted plant"][0]
+            "solucao": '''indice = [i for i, nome in model.names.items() if nome == "person"][0]
 cap = cv2.VideoCapture(video)
 fps = int(cap.get(cv2.CAP_PROP_FPS)) or 25
 largura = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 altura = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-out = cv2.VideoWriter("sala_plantas.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (largura, altura))
+out = cv2.VideoWriter("obra_pessoas.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (largura, altura))
 for _ in range(40):
     ok, frame = cap.read()
     if not ok:
@@ -242,7 +246,7 @@ for _ in range(40):
     out.write(r.plot())
 cap.release()
 out.release()
-resposta = "sala_plantas.mp4"''',
+resposta = "obra_pessoas.mp4"''',
         },
     ],
 }
@@ -257,10 +261,6 @@ _xyxy = resultado.boxes.xyxy.tolist()
 
 def _indices(nome):
     return [i for i, c in enumerate(_cls) if model.names[c] == nome]
-
-
-def _i_onibus():
-    return max(_indices("bus"), key=lambda i: (_xyxy[i][2] - _xyxy[i][0]) * (_xyxy[i][3] - _xyxy[i][1]))
 
 
 def _i_pessoa():
@@ -295,53 +295,49 @@ def _pares():
 
 
 def _recorte():
-    i = _i_onibus()
+    i = _i_pessoa()
     ys, xs = np.where(mascaras[i])
     return (int(ys.max() - ys.min() + 1), int(xs.max() - xs.min() + 1))
 
 
 VERIFICAR = {
-    1: lambda r: abs(float(r) - _razao_caixa(_i_onibus())) < 1e-3,
-    2: lambda r: abs(float(r) - float(mascaras[_i_onibus()].mean()) * 100) < 0.1,
+    1: lambda r: abs(float(r) - _razao_caixa(_i_pessoa())) < 1e-3,
+    2: lambda r: abs(float(r) - float(mascaras[_i_pessoa()].mean()) * 100) < 0.1,
     3: lambda r: tuple(getattr(r, "shape", r)[:2]) == _recorte(),
     4: lambda r: all(abs(int(a) - b) <= 1 for a, b in zip(r, _centro(_i_pessoa()))),
-    5: lambda r: abs(float(r) - _iou_caixa(_i_onibus())) < 1e-3,
+    5: lambda r: abs(float(r) - _iou_caixa(_i_pessoa())) < 1e-3,
     6: lambda r: int(r) == _pares(),
 }
 ''',
     "lista": [
         {
-            "titulo": "Quanto da caixa é objeto",
-            "enunciado": "Divida a área da máscara do ônibus pela área da caixa dele. Se houver mais de um ônibus, use o da maior caixa. O resultado fica entre 0 e 1: é a parte da caixa que é ônibus de verdade.",
+            "titulo": "Quanto da caixa é o operário",
+            "enunciado": "Divida a área da máscara do operário pela área da caixa dele. Use a pessoa de maior máscara. O resultado fica entre 0 e 1: é a parte da caixa que é corpo de verdade.",
             "dica": "Área da caixa: (x2 - x1) * (y2 - y1), com os cantos em resultado.boxes.xyxy.",
-            "solucao": '''def _area_caixa(k):
-    x1, y1, x2, y2 = resultado.boxes.xyxy[k].tolist()
-    return (x2 - x1) * (y2 - y1)
-
-i = max(
-    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "bus"),
-    key=_area_caixa,
+            "solucao": '''i = max(
+    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "person"),
+    key=lambda k: int(mascaras[k].sum()),
 )
 x1, y1, x2, y2 = resultado.boxes.xyxy[i].tolist()
 resposta = float(mascaras[i].sum()) / ((x2 - x1) * (y2 - y1))''',
         },
         {
             "titulo": "Porcentagem da foto",
-            "enunciado": "Quantos por cento da foto a máscara desse ônibus cobre? Responda com um número de 0 a 100.",
+            "enunciado": "Quantos por cento da foto a máscara desse operário cobre? Responda com um número de 0 a 100. Use a pessoa de maior máscara.",
             "dica": "A média de uma máscara booleana, vezes 100, é a porcentagem.",
             "solucao": '''i = max(
-    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "bus"),
-    key=lambda k: float((resultado.boxes.xyxy[k][2] - resultado.boxes.xyxy[k][0]) * (resultado.boxes.xyxy[k][3] - resultado.boxes.xyxy[k][1])),
+    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "person"),
+    key=lambda k: int(mascaras[k].sum()),
 )
 resposta = float(mascaras[i].mean()) * 100''',
         },
         {
-            "titulo": "Recorte do ônibus",
-            "enunciado": "Recorte a foto no retângulo justo da máscara do ônibus (o menor retângulo que ainda contém todos os pixels `True`). A resposta é o recorte.",
+            "titulo": "Recorte do operário",
+            "enunciado": "Recorte a foto no retângulo justo da máscara do operário de maior máscara (o menor retângulo que ainda contém todos os pixels `True`). A resposta é o recorte.",
             "dica": "np.where devolve as linhas e as colunas. O recorte é img[y_min:y_max+1, x_min:x_max+1].",
             "solucao": '''i = max(
-    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "bus"),
-    key=lambda k: float((resultado.boxes.xyxy[k][2] - resultado.boxes.xyxy[k][0]) * (resultado.boxes.xyxy[k][3] - resultado.boxes.xyxy[k][1])),
+    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "person"),
+    key=lambda k: int(mascaras[k].sum()),
 )
 img = cv2.imread(imagem)
 ys, xs = np.where(mascaras[i])
@@ -352,8 +348,8 @@ plt.axis("off")
 plt.show()''',
         },
         {
-            "titulo": "Centro da pessoa",
-            "enunciado": "Ache o centro da maior pessoa (a de máscara com mais pixels). Responda com `(x, y)` em pixels, x na horizontal.",
+            "titulo": "Centro do operário",
+            "enunciado": "Ache o centro do operário de maior máscara. Responda com `(x, y)` em pixels, x na horizontal.",
             "dica": "np.where(mascara) devolve (linhas, colunas). A média das colunas é o x.",
             "solucao": '''i = max(
     (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "person"),
@@ -364,11 +360,11 @@ resposta = (int(round(xs.mean())), int(round(ys.mean())))''',
         },
         {
             "titulo": "IoU com a caixa",
-            "enunciado": "Calcule o IoU entre a máscara do ônibus e o retângulo da caixa dele. IoU é a interseção dividida pela união. Use o ônibus da maior caixa.",
+            "enunciado": "Calcule o IoU entre a máscara do operário de maior máscara e o retângulo da caixa dele. IoU é a interseção dividida pela união.",
             "dica": "Pinte um array booleano só dentro da caixa e compare com a máscara usando & e |.",
             "solucao": '''i = max(
-    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "bus"),
-    key=lambda k: float((resultado.boxes.xyxy[k][2] - resultado.boxes.xyxy[k][0]) * (resultado.boxes.xyxy[k][3] - resultado.boxes.xyxy[k][1])),
+    (k for k, c in enumerate(resultado.boxes.cls) if model.names[int(c)] == "person"),
+    key=lambda k: int(mascaras[k].sum()),
 )
 caixa = np.zeros(mascaras.shape[1:], dtype=bool)
 x1, y1, x2, y2 = map(int, resultado.boxes.xyxy[i].tolist())

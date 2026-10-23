@@ -3,6 +3,11 @@
 import nbformat as nbf
 
 REPO = "naubergois/curso-segmentacao-colab"
+MIDIA = f"https://raw.githubusercontent.com/{REPO}/main/midia"
+FOTO_ENFERMARIA = f"{MIDIA}/enfermaria.jpg"
+VIDEO_OBRA = f"{MIDIA}/obra.mp4"
+FOTO_OPERARIOS = f"{MIDIA}/operarios.jpg"
+FOTO_CANTEIRO = f"{MIDIA}/canteiro.jpg"
 
 INSTALL = "!pip install -q ultralytics"
 

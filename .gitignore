@@ -3,6 +3,8 @@
 *.mp4
 *.avi
 *.jpg
+!midia/*.jpg
+!midia/*.mp4
 runs/
 datasets/
 .ipynb_checkpoints/

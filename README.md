@@ -1,6 +1,6 @@
 # Segmentação na prática, no Colab
 
-A caixa em volta do ônibus leva o céu junto. A máscara fica só no objeto. Quatro notebooks curtos mostram isso com YOLOv8-seg, da primeira foto até um treino com polígono. Cada um abre direto no Google Colab.
+A caixa em volta do leito leva o chão junto. Na obra, a caixa do operário leva a lama e o céu. A máscara fica só no objeto. Quatro notebooks curtos mostram isso com YOLOv8-seg, da enfermaria até um treino com polígono. Cada um abre direto no Google Colab.
 
 | Aula | Abrir |
 |---|---|
@@ -21,18 +21,18 @@ Cada exercício também existe como notebook próprio: prepara os dados, deixa u
 | 1 | 2. Classes com máscara | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula1-exercicio2-classes-com-mascara.ipynb) |
 | 1 | 3. A máscara mais segura | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula1-exercicio3-a-mascara-mais-segura.ipynb) |
 | 1 | 4. Área da maior máscara | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula1-exercicio4-area-da-maior-mascara.ipynb) |
-| 1 | 5. Só pessoas | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula1-exercicio5-so-pessoas.ipynb) |
-| 1 | 6. O ônibus na foto | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula1-exercicio6-o-onibus-na-foto.ipynb) |
+| 1 | 5. Só os leitos | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula1-exercicio5-so-os-leitos.ipynb) |
+| 1 | 6. Os leitos na foto | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula1-exercicio6-os-leitos-na-foto.ipynb) |
 | 2 | 1. Duração do vídeo | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula2-exercicio1-duracao-do-video.ipynb) |
 | 2 | 2. Quem ocupa mais pixels | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula2-exercicio2-quem-ocupa-mais-pixels.ipynb) |
 | 2 | 3. Quadros com pessoa | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula2-exercicio3-quadros-com-pessoa.ipynb) |
 | 2 | 4. Pular quadros | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula2-exercicio4-pular-quadros.ipynb) |
 | 2 | 5. Média de máscaras | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula2-exercicio5-media-de-mascaras.ipynb) |
-| 2 | 6. Vídeo só com plantas | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula2-exercicio6-video-so-com-plantas.ipynb) |
-| 3 | 1. Quanto da caixa é objeto | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio1-quanto-da-caixa-e-objeto.ipynb) |
+| 2 | 6. Vídeo só com pessoas | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula2-exercicio6-video-so-com-pessoas.ipynb) |
+| 3 | 1. Quanto da caixa é o operário | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio1-quanto-da-caixa-e-o-operario.ipynb) |
 | 3 | 2. Porcentagem da foto | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio2-porcentagem-da-foto.ipynb) |
-| 3 | 3. Recorte do ônibus | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio3-recorte-do-onibus.ipynb) |
-| 3 | 4. Centro da pessoa | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio4-centro-da-pessoa.ipynb) |
+| 3 | 3. Recorte do operário | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio3-recorte-do-operario.ipynb) |
+| 3 | 4. Centro do operário | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio4-centro-do-operario.ipynb) |
 | 3 | 5. IoU com a caixa | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio5-iou-com-a-caixa.ipynb) |
 | 3 | 6. Máscaras que se tocam | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula3-exercicio6-mascaras-que-se-tocam.ipynb) |
 | 4 | 1. Tamanho do treino | [Colab](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/exercicios/aula4-exercicio1-tamanho-do-treino.ipynb) |
@@ -44,8 +44,14 @@ Cada exercício também existe como notebook próprio: prepara os dados, deixa u
 
 ## Vídeos e fotos
 
-- `bus.jpg`, da [Ultralytics](https://ultralytics.com/images/bus.jpg)
-- `home-objects-compressed.mp4`, dos [assets da Ultralytics](https://github.com/ultralytics/assets/releases/tag/v0.0.0)
+Ficam em `midia/` e o Colab baixa do próprio repositório.
+
+- `enfermaria.jpg`: quarto de hospital, Tomasz Sienicki, domínio público
+- `obra.mp4`: obra da rodovia D8, Juandev, CC BY-SA 3.0
+- `operarios.jpg`: Justine Belson, U.S. Fish and Wildlife Service, domínio público
+- `canteiro.jpg`: Neb, CC BY-SA 4.0
+
+Origem: Wikimedia Commons. O modelo segue nas 80 classes do COCO. Ele pinta leito, cadeira, pessoa e caminhão. Não pinta trinca nem estrutura clínica.
 
 ## Exercícios
 

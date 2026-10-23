@@ -12,7 +12,16 @@ from pathlib import Path
 
 import nbformat as nbf
 
-from comum import HELPERS, INSTALL, badge, colab_url, novo_notebook
+from comum import (
+    FOTO_ENFERMARIA,
+    FOTO_OPERARIOS,
+    HELPERS,
+    INSTALL,
+    VIDEO_OBRA,
+    badge,
+    colab_url,
+    novo_notebook,
+)
 from exercicios import CONFERIR, EXERCICIOS
 
 OUT = Path(os.environ.get("OUT", Path(__file__).parent / "exercicios"))
@@ -21,13 +30,13 @@ AULAS = {
     "01-segmentacao-em-imagem.ipynb": {
         "nome": "Segmentação em imagem",
         "install": INSTALL,
-        "contexto": "A preparação carrega o YOLOv8 de segmentação e roda na foto do ônibus, como na aula 1. Ficam prontos `resultado` e `mascaras`.",
-        "setup": '''import numpy as np
+        "contexto": "A preparação carrega o YOLOv8 de segmentação e roda na foto da enfermaria. Ficam prontos `resultado` e `mascaras`.",
+        "setup": f'''import numpy as np
 from ultralytics import YOLO
 import matplotlib.pyplot as plt
 
 model = YOLO("yolov8n-seg.pt")
-imagem = baixar("https://ultralytics.com/images/bus.jpg", "bus.jpg")
+imagem = baixar("{FOTO_ENFERMARIA}", "enfermaria.jpg")
 resultado = model(imagem, verbose=False)[0]
 mascaras = mascaras_originais(resultado)
 
@@ -40,16 +49,16 @@ print(len(mascaras), "máscaras")''',
     "02-segmentacao-em-video.ipynb": {
         "nome": "Segmentação em vídeo",
         "install": INSTALL,
-        "contexto": "A preparação baixa o vídeo da sala e segmenta os primeiros 80 quadros, como na aula 2. Ficam prontos `pixels`, `classes_por_quadro` e `mascaras_por_quadro`.",
-        "setup": '''from collections import Counter
+        "contexto": "A preparação baixa o vídeo da obra e segmenta os primeiros 80 quadros. Ficam prontos `pixels`, `classes_por_quadro` e `mascaras_por_quadro`.",
+        "setup": f'''from collections import Counter
 
 import cv2
 from ultralytics import YOLO
 
 model = YOLO("yolov8n-seg.pt")
 video = baixar(
-    "https://github.com/ultralytics/assets/releases/download/v0.0.0/home-objects-compressed.mp4",
-    "sala.mp4",
+    "{VIDEO_OBRA}",
+    "obra.mp4",
 )
 
 MAX_QUADROS = 80
@@ -77,20 +86,20 @@ while quadros < MAX_QUADROS:
     quadros += 1
 cap.release()
 
-print(f"{largura}x{altura} a {fps} FPS, {quadros} quadros")
+print(f"{{largura}}x{{altura}} a {{fps}} FPS, {{quadros}} quadros")
 print(pixels.most_common(3))''',
     },
     "03-medir-a-mascara.ipynb": {
         "nome": "Medir a máscara",
         "install": INSTALL,
-        "contexto": "A preparação segmenta a foto do ônibus, como na aula 3. Ficam prontos `resultado` e `mascaras`, no tamanho da foto.",
-        "setup": '''import numpy as np
+        "contexto": "A preparação segmenta a foto dos operários na obra. Ficam prontos `resultado` e `mascaras`, no tamanho da foto.",
+        "setup": f'''import numpy as np
 import cv2
 from ultralytics import YOLO
 import matplotlib.pyplot as plt
 
 model = YOLO("yolov8n-seg.pt")
-imagem = baixar("https://ultralytics.com/images/bus.jpg", "bus.jpg")
+imagem = baixar("{FOTO_OPERARIOS}", "operarios.jpg")
 resultado = model(imagem, verbose=False)[0]
 mascaras = mascaras_originais(resultado)
 
@@ -152,7 +161,7 @@ def gerar():
             fecho = (f"Próximo: [Aula {proximo[1]}, exercício {proximo[2]}: {proximo[3]['titulo']}]"
                      f"({colab_url('exercicios/' + proximo[4])}).")
         else:
-            fecho = "Esse foi o último dos 24. Agora é trocar a foto do ônibus por uma foto sua, com o contorno marcado."
+            fecho = "Esse foi o último dos 24. O passo seguinte é uma foto sua, de hospital ou de obra, com o contorno marcado."
 
         celulas = [
             ("md", f"""{badge('exercicios/' + arquivo)}

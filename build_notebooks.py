@@ -10,7 +10,16 @@ from pathlib import Path
 
 import nbformat as nbf
 
-from comum import HELPERS, INSTALL, badge, novo_notebook
+from comum import (
+    FOTO_CANTEIRO,
+    FOTO_ENFERMARIA,
+    FOTO_OPERARIOS,
+    HELPERS,
+    INSTALL,
+    VIDEO_OBRA,
+    badge,
+    novo_notebook,
+)
 from exercicios import EXERCICIOS, celulas_exercicios, id_exercicio
 
 OUT = Path(os.environ.get("OUT", Path(__file__).parent / "notebooks"))
@@ -49,9 +58,9 @@ notebook("01-segmentacao-em-imagem.ipynb", [
 
 # 1. Segmentação em uma imagem
 
-Uma caixa diz onde o objeto está, mais ou menos. O retângulo do ônibus leva junto o asfalto, a calçada e um pedaço do céu. A segmentação devolve a forma: uma máscara com os pixels que são o objeto.
+Uma caixa diz onde o objeto está, mais ou menos. Num quarto de hospital, o retângulo do leito leva junto o chão, a cortina e um pedaço da parede. A segmentação devolve a forma: uma máscara com os pixels que são o leito.
 
-O modelo é o `yolov8n-seg`, a versão nano de segmentação. Tem uns 7 MB, roda sem GPU e conhece as 80 classes do COCO. A caixa continua vindo. Junto com ela, vem a máscara.
+O modelo é o `yolov8n-seg`, a versão nano de segmentação. Tem uns 7 MB, roda sem GPU e conhece as 80 classes do COCO. Leito e cadeira estão nessa lista. Uma lesão, um órgão ou uma trinca no concreto, não. A caixa continua vindo. Junto com ela, vem a máscara.
 
 > No Colab: **Ambiente de execução → Executar tudo**. GPU é opcional aqui.
 """),
@@ -60,14 +69,14 @@ O modelo é o `yolov8n-seg`, a versão nano de segmentação. Tem uns 7 MB, roda
     ("md", """
 ## Carregar o modelo e a foto
 
-Na primeira chamada, `YOLO("yolov8n-seg.pt")` baixa os pesos. A foto é a do ônibus que a Ultralytics usa como teste.
+Na primeira chamada, `YOLO("yolov8n-seg.pt")` baixa os pesos. A foto é um quarto de hospital, com dois leitos e cadeiras.
 """),
-    ("code", '''import numpy as np
+    ("code", f'''import numpy as np
 from ultralytics import YOLO
 import matplotlib.pyplot as plt
 
 model = YOLO("yolov8n-seg.pt")
-imagem = baixar("https://ultralytics.com/images/bus.jpg", "bus.jpg")'''),
+imagem = baixar("{FOTO_ENFERMARIA}", "enfermaria.jpg")'''),
     ("md", """
 ## Rodar a segmentação
 
@@ -95,7 +104,7 @@ for i, caixa in enumerate(resultado.boxes):
     ("md", """
 ## A caixa é maior que o objeto
 
-A área da máscara dividida pela área da caixa mostra quanto do retângulo é objeto de verdade. No ônibus, uma parte da caixa é rua e céu.
+A área da máscara dividida pela área da caixa mostra quanto do retângulo é objeto de verdade. No leito, uma parte da caixa é chão e cortina.
 """),
     ("code", '''for i, caixa in enumerate(resultado.boxes):
     x1, y1, x2, y2 = caixa.xyxy[0].tolist()
@@ -118,23 +127,25 @@ notebook("02-segmentacao-em-video.ipynb", [
 
 # 2. Segmentação quadro a quadro
 
-Vídeo é uma sequência de fotos. O laço é o mesmo da detecção: ler o quadro, rodar o modelo, desenhar, gravar. A diferença é o que se conta. Uma cadeira que aparece em todo quadro gera muitas detecções, mas a pergunta melhor é quantos pixels ela ocupa.
+Vídeo é uma sequência de fotos. O laço lê o quadro, roda o modelo, desenha e grava. A diferença é o que se conta. Um operário que atravessa a obra gera uma detecção por quadro, mas a pergunta melhor é quantos pixels a pessoa ocupa.
 
-O clipe é uma sala com cadeiras, plantas, mesa e livros, menos de 1 MB. Aqui são 80 quadros, para caber em CPU.
+O clipe é uma obra de rodovia: gente de colete e máquinas no aterro. Dura uns 24 segundos. Aqui são 80 quadros, para caber em CPU.
+
+A escavadeira não está nas 80 classes. O nome que volta costuma ser `train` ou `truck`. A conta de pixels continua valendo, com o nome que o modelo conhece.
 
 > GPU deixa bem mais rápido: **Ambiente de execução → Alterar o tipo de ambiente → T4 GPU**.
 """),
     ("code", INSTALL),
     ("code", HELPERS),
-    ("code", '''from collections import Counter
+    ("code", f'''from collections import Counter
 
 import cv2
 from ultralytics import YOLO
 
 model = YOLO("yolov8n-seg.pt")
 video = baixar(
-    "https://github.com/ultralytics/assets/releases/download/v0.0.0/home-objects-compressed.mp4",
-    "sala.mp4",
+    "{VIDEO_OBRA}",
+    "obra.mp4",
 )'''),
     ("md", """
 ## Ler, segmentar, gravar
@@ -149,7 +160,7 @@ largura = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 altura = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 print(f"{largura}x{altura} a {fps} FPS")
 
-out = cv2.VideoWriter("sala_segmentada.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (largura, altura))
+out = cv2.VideoWriter("obra_segmentada.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (largura, altura))
 pixels = Counter()
 classes_por_quadro = []
 mascaras_por_quadro = []
@@ -178,11 +189,11 @@ assert quadros > 0'''),
     ("md", """
 ## Assistir o resultado
 """),
-    ("code", 'web = mostrar_video("sala_segmentada.mp4")'),
+    ("code", 'web = mostrar_video("obra_segmentada.mp4")'),
     ("md", """
 ## Quem ocupa a imagem
 
-O número de detecções trata uma cadeira pequena e uma planta enorme como iguais. A soma de pixels não.
+O número de detecções trata um operário pequeno e uma máquina enorme como iguais. A soma de pixels não.
 """),
     ("code", '''for classe, n in pixels.most_common():
     print(f"{classe:16s} {n:8d} pixels")'''),
@@ -206,20 +217,20 @@ notebook("03-medir-a-mascara.ipynb", [
 
 A máscara pintada na foto é boa de olhar. Para usar num sistema, ela precisa virar número: que fração da imagem o objeto cobre, onde fica o centro, o quanto a caixa sobra, se duas máscaras se encostam.
 
-Tudo isso é conta de array. A foto é a do ônibus de novo.
+Tudo isso é conta de array. A foto é de dois operários na obra, de capacete e picareta. A caixa do operário da frente leva a ferramenta, a lama e um pedaço do céu. A máscara acompanha o corpo.
 """),
     ("code", INSTALL),
     ("code", HELPERS),
-    ("code", '''import numpy as np
+    ("code", f'''import numpy as np
 import cv2
 from ultralytics import YOLO
 import matplotlib.pyplot as plt
 
 model = YOLO("yolov8n-seg.pt")
-imagem = baixar("https://ultralytics.com/images/bus.jpg", "bus.jpg")
+imagem = baixar("{FOTO_OPERARIOS}", "operarios.jpg")
 resultado = model(imagem, verbose=False)[0]
 mascaras = mascaras_originais(resultado)
-print(f"{len(mascaras)} máscaras")'''),
+print(f"{{len(mascaras)}} máscaras")'''),
     ("md", """
 ## Porcentagem da foto
 
@@ -259,7 +270,7 @@ O IoU é a interseção dividida pela união. Aqui um dos lados é a máscara e 
     ("md", """
 ## Quem encosta em quem
 
-Dois objetos se tocam quando algum pixel é `True` nas duas máscaras. Pessoa na frente do ônibus costuma gerar um par.
+Dois objetos se tocam quando algum pixel é `True` nas duas máscaras. Na foto dos operários, a conta diz se os corpos se encontram.
 """),
     ("code", '''n = len(mascaras)
 for i in range(n):
@@ -282,11 +293,11 @@ notebook("04-treinar-segmentacao.ipynb", [
 
 # 4. Treinar a segmentação
 
-O modelo pronto desenha pessoa, ônibus, cadeira. Para desenhar uma peça da fábrica ou uma lesão na folha, o treino precisa de fotos em que o contorno já foi marcado.
+O modelo pronto desenha pessoa, leito, cadeira e caminhão. Para desenhar uma trinca no concreto ou o contorno de uma estrutura numa foto clínica, o treino precisa de fotos em que o contorno já foi marcado.
 
 O rótulo deixa de ser um retângulo. Cada objeto vira um polígono: a classe, e depois os pontos do contorno, todos entre 0 e 1.
 
-O dataset pequeno é o `coco8-seg`: quatro fotos de treino e quatro de validação, já no formato certo. Serve para ver o processo. Um modelo bom pede centenas de contornos por classe.
+O dataset pequeno é o `coco8-seg`: quatro fotos de treino e quatro de validação, já no formato certo. Serve para ver o processo. Ele não é um conjunto de hospital nem de canteiro. Um modelo bom pede centenas de contornos por classe.
 
 > Aqui a GPU faz diferença: **Ambiente de execução → Alterar o tipo de ambiente → T4 GPU**.
 """),
@@ -353,8 +364,8 @@ plt.show()'''),
 
 O melhor peso fica em `weights/best.pt`. Ele carrega igual ao modelo original e devolve máscara do mesmo jeito.
 """),
-    ("code", '''melhor = YOLO(pasta / "weights" / "best.pt")
-r = melhor("https://ultralytics.com/images/bus.jpg", verbose=False)[0]
+    ("code", f'''melhor = YOLO(pasta / "weights" / "best.pt")
+r = melhor("{FOTO_CANTEIRO}", verbose=False)[0]
 plt.figure(figsize=(6, 8))
 plt.imshow(r.plot()[:, :, ::-1])
 plt.axis("off")
