@@ -11,11 +11,13 @@ from pathlib import Path
 import nbformat as nbf
 
 from comum import (
+    CT_TORAX,
     FOTO_CANTEIRO,
     FOTO_ENFERMARIA,
     FOTO_OPERARIOS,
     HELPERS,
     INSTALL,
+    RM_CABECA,
     VIDEO_OBRA,
     badge,
     novo_notebook,
@@ -27,6 +29,9 @@ SOLUCOES = os.environ.get("SOLUCOES") == "1"
 
 
 def notebook(nome, celulas):
+    somente = os.environ.get("SOMENTE")
+    if somente and nome not in somente.split(","):
+        return
     nb = novo_notebook()
     if nome in EXERCICIOS:
         celulas = celulas[:-1] + celulas_exercicios(EXERCICIOS[nome], SOLUCOES) + celulas[-1:]
@@ -34,6 +39,7 @@ def notebook(nome, celulas):
     for tipo, texto in celulas:
         texto = texto.strip("\n")
         texto = texto.replace("{BADGE}", badge(f"notebooks/{nome}"))
+        texto = texto.replace("{CT_TORAX}", CT_TORAX).replace("{RM_CABECA}", RM_CABECA)
         if tipo == "md":
             cel = nbf.v4.new_markdown_cell(texto)
             ex = re.match(r"### Exercício (\d+)\.", texto)
@@ -186,6 +192,21 @@ cap.release()
 out.release()
 print(f"{quadros} quadros processados")
 assert quadros > 0'''),
+    ("md", """
+## Um quadro, parado
+
+O vídeo passa rápido. Este é o primeiro quadro, com a máscara já pintada. A caixa vem junto: o modelo devolve as duas coisas.
+"""),
+    ("code", '''import matplotlib.pyplot as plt
+
+cap = cv2.VideoCapture(video)
+ok, frame = cap.read()
+cap.release()
+quadro = model(frame, verbose=False)[0]
+plt.figure(figsize=(8, 4.5))
+plt.imshow(quadro.plot()[:, :, ::-1])
+plt.axis("off")
+plt.show()'''),
     ("md", """
 ## Assistir o resultado
 """),
@@ -379,5 +400,236 @@ print(0 if r.masks is None else len(r.masks), "máscaras")'''),
 3. Troque `data="coco8-seg.yaml"` pelo `data.yaml` do seu dataset e suba `epochs` para 50 ou mais.
 
 O processo é o mesmo. Mudam o tamanho do dataset e o tempo de treino. Quatro fotos ensinam o caminho, e erram o contorno.
+"""),
+])
+
+INSTALL_EXAME = "!pip install -q pynrrd"
+
+# ---------------------------------------------------------------- 05
+notebook("05-tomografia.ipynb", [
+    ("md", """
+{BADGE}
+
+# 5. Tomografia
+
+Uma tomografia não é uma foto de quarto. É uma pilha de cortes. Em cada corte, o número do pixel é densidade: osso claro, ar escuro, músculo no meio. A unidade usual é Hounsfield. Água fica perto de zero. Pulmão, bem abaixo. Osso, bem acima.
+
+A máscara daqui não vem das 80 classes. Ela sai da densidade. O ar de fora do corpo não entra. Entra o ar que está dentro do tórax.
+
+O volume é o CTChest, amostra pública do 3D Slicer. Tem uns 40 MB.
+
+> No Colab: **Ambiente de execução → Executar tudo**. CPU chega.
+"""),
+    ("code", INSTALL_EXAME),
+    ("code", HELPERS),
+    ("code", '''import nrrd
+import numpy as np
+from scipy import ndimage
+import matplotlib.pyplot as plt
+
+arquivo = baixar("{CT_TORAX}", "ct-torax.nrrd")
+volume, _cabecalho = nrrd.read(arquivo)
+volume = volume.astype(np.float32)
+print(f"{volume.shape[0]} x {volume.shape[1]} x {volume.shape[2]} cortes")
+print(f"densidade de {volume.min():.0f} a {volume.max():.0f}")
+assert volume.ndim == 3'''),
+    ("md", """
+## O corte com mais pulmão
+
+Pulmão, neste número, é o que fica entre −950 e −400. O corte que mais tem desses pixels é o que a gente olha primeiro.
+"""),
+    ("code", '''def pixels_de_pulmao(fatia):
+    return int(((fatia > -950) & (fatia < -400)).sum())
+
+areas = [pixels_de_pulmao(volume[:, :, z]) for z in range(volume.shape[2])]
+z = int(np.argmax(areas))
+fatia = volume[:, :, z]
+print(f"corte {z}, {areas[z]} pixels na faixa do pulmão")'''),
+    ("md", """
+## A janela
+
+O olho não lê −1000 e 3000 ao mesmo tempo. A janela de pulmão espalha os cinzas em volta de −600. Osso estoura no branco. Ar de fora fica preto.
+"""),
+    ("code", '''def janela(img, centro, largura):
+    baixo = centro - largura / 2
+    alto = centro + largura / 2
+    return np.clip((img - baixo) / (alto - baixo), 0, 1)
+
+plt.figure(figsize=(6, 6))
+plt.imshow(janela(fatia, -600, 1500), cmap="gray")
+plt.axis("off")
+plt.show()'''),
+    ("md", """
+## A máscara do pulmão
+
+Primeiro o corpo: tudo mais denso que −300, com os buracos preenchidos. O pulmão é o buraco que voltou a ser ar, dentro desse corpo. O que encosta na borda da imagem é ar de fora, e sai.
+"""),
+    ("code", '''def mascara_pulmao(fatia):
+    corpo = ndimage.binary_fill_holes(fatia > -300)
+    pulmao = corpo & (fatia > -950) & (fatia < -400)
+    pulmao = ndimage.binary_opening(pulmao, iterations=1)
+    rotulo, n = ndimage.label(pulmao)
+    borda = set(rotulo[0, :]) | set(rotulo[-1, :]) | set(rotulo[:, 0]) | set(rotulo[:, -1])
+    borda.discard(0)
+    for pedaco in borda:
+        pulmao[rotulo == pedaco] = False
+    return pulmao
+
+pulmao = mascara_pulmao(fatia)
+cor = plt.cm.gray(janela(fatia, -600, 1500))[..., :3]
+cor[pulmao] = 0.55 * cor[pulmao] + 0.45 * np.array([0.2, 0.85, 0.35])
+plt.figure(figsize=(6, 6))
+plt.imshow(cor)
+plt.axis("off")
+plt.show()
+print(f"o pulmão cobre {pulmao.mean() * 100:.1f}% deste corte")'''),
+    ("md", """
+## O osso no mesmo corte
+
+Osso é o que passa de 300. A máscara é fina: vértebra, costela, escápula. Vaso e brônquio continuam de fora das duas máscaras, porque não são ar nem osso.
+"""),
+    ("code", '''osso = fatia > 300
+cor = plt.cm.gray(janela(fatia, -600, 1500))[..., :3]
+cor[osso] = 0.55 * cor[osso] + 0.45 * np.array([0.25, 0.65, 1.0])
+plt.figure(figsize=(6, 6))
+plt.imshow(cor)
+plt.axis("off")
+plt.show()
+print(f"osso: {int(osso.sum())} pixels")'''),
+    ("md", """
+## Três alturas
+
+O pulmão não tem o mesmo tamanho no alto e na base. Três cortes, com a mesma máscara, mostram a mudança.
+"""),
+    ("code", '''escolhidos = [z for z in (z - 20, z, z + 12) if 0 <= z < volume.shape[2]]
+fig, eixos = plt.subplots(1, len(escolhidos), figsize=(12, 4))
+for eixo, indice in zip(eixos, escolhidos):
+    f = volume[:, :, indice]
+    m = mascara_pulmao(f)
+    img = plt.cm.gray(janela(f, -600, 1500))[..., :3]
+    img[m] = 0.55 * img[m] + 0.45 * np.array([0.2, 0.85, 0.35])
+    eixo.imshow(img)
+    eixo.set_title(f"corte {indice}")
+    eixo.axis("off")
+plt.tight_layout()
+plt.show()'''),
+    ("md", """
+## O que fica
+
+A máscara do pulmão é uma conta de densidade. Vaso dentro do pulmão fica de fora, porque é tecido. Isso ainda não é um laudo, e não marca nódulo: um nódulo tem densidade de tecido e some no meio da máscara, ou nem entra nela.
+
+O modelo das aulas 1 a 4 não lê este arquivo. Ele não tem classe para pulmão.
+"""),
+])
+
+# ---------------------------------------------------------------- 06
+notebook("06-ressonancia.ipynb", [
+    ("md", """
+{BADGE}
+
+# 6. Ressonância
+
+A ressonância também é uma pilha de cortes, mas o número não é densidade. É sinal. No mesmo cérebro, gordura, água e osso trocam de claro e escuro conforme o peso do exame. Aqui o crânio fica escuro e o cérebro, cinza.
+
+A máscara é o maior bloco acima de um corte de intensidade. No corte de lado, esse bloco é o cérebro, e o rosto fica de fora. Não é substância branca contra cinzenta. É o tecido contra o fundo.
+
+O volume é o MRHead, doado ao 3D Slicer para uso sem restrição. Tem uns 7 MB.
+
+> No Colab: **Ambiente de execução → Executar tudo**. CPU chega.
+"""),
+    ("code", INSTALL_EXAME),
+    ("code", HELPERS),
+    ("code", '''import nrrd
+import numpy as np
+from scipy import ndimage
+import matplotlib.pyplot as plt
+
+arquivo = baixar("{RM_CABECA}", "rm-cabeca.nrrd")
+volume, _cabecalho = nrrd.read(arquivo)
+volume = volume.astype(np.float32)
+print(f"{volume.shape[0]} x {volume.shape[1]} x {volume.shape[2]}")
+print(f"sinal de {volume.min():.0f} a {volume.max():.0f}")
+assert volume.ndim == 3'''),
+    ("md", """
+## Dois jeitos de cortar a mesma cabeça
+
+Um corte atravessa os olhos. O outro mostra a cabeça de lado, com o cerebelo embaixo. Os dois saem do mesmo volume. Muda o eixo.
+"""),
+    ("code", '''def cinza(img):
+    baixo, alto = np.percentile(img, [1, 99])
+    return np.clip((img - baixo) / (alto - baixo + 1e-6), 0, 1)
+
+axial = volume[:, volume.shape[1] // 2, :]
+sagital = volume[:, :, volume.shape[2] // 2]
+
+fig, eixos = plt.subplots(1, 2, figsize=(8, 5))
+eixos[0].imshow(cinza(axial), cmap="gray")
+eixos[0].set_title("pelos olhos")
+eixos[1].imshow(cinza(sagital), cmap="gray")
+eixos[1].set_title("de lado")
+for eixo in eixos:
+    eixo.axis("off")
+plt.tight_layout()
+plt.show()'''),
+    ("md", """
+## A máscara no corte de lado
+
+O fundo é quase zero. O que passa de um patamar vira candidato. A abertura come a borda fininha. O maior pedaço que sobra é o cérebro. Olho e pele, quando se separam, ficam de fora.
+"""),
+    ("code", '''def mascara_tecido(fatia):
+    vivos = fatia[fatia > 5]
+    patamar = np.percentile(vivos, 40) if len(vivos) else 0
+    mascara = fatia > patamar
+    mascara = ndimage.binary_opening(mascara, iterations=2)
+    mascara = ndimage.binary_fill_holes(mascara)
+    rotulo, n = ndimage.label(mascara)
+    if n == 0:
+        return mascara
+    tamanhos = ndimage.sum(np.ones_like(rotulo), rotulo, range(1, n + 1))
+    return rotulo == (1 + int(np.argmax(tamanhos)))
+
+cerebro = mascara_tecido(sagital)
+cor = plt.cm.gray(cinza(sagital))[..., :3]
+cor[cerebro] = 0.55 * cor[cerebro] + 0.45 * np.array([0.85, 0.65, 0.25])
+plt.figure(figsize=(6, 6))
+plt.imshow(cor)
+plt.axis("off")
+plt.show()
+print(f"o maior bloco cobre {cerebro.mean() * 100:.1f}% do corte de lado")'''),
+    ("md", """
+## O corte dos olhos
+
+A mesma conta, agora no corte que atravessa os olhos. O patamar sobe um pouco, para o cinza do cérebro não grudar na pele. O que a máscara pega aqui é o miolo da cabeça, não o crânio.
+"""),
+    ("code", '''def mascara_miolo(fatia):
+    mascara = (fatia > 35) & (fatia < 120)
+    mascara = ndimage.binary_opening(mascara, iterations=1)
+    mascara = ndimage.binary_closing(mascara, iterations=2)
+    mascara = ndimage.binary_fill_holes(mascara)
+    rotulo, n = ndimage.label(mascara)
+    borda = set(rotulo[0, :]) | set(rotulo[-1, :]) | set(rotulo[:, 0]) | set(rotulo[:, -1])
+    borda.discard(0)
+    for pedaco in borda:
+        mascara[rotulo == pedaco] = False
+    rotulo, n = ndimage.label(mascara)
+    if n == 0:
+        return mascara
+    tamanhos = ndimage.sum(np.ones_like(rotulo), rotulo, range(1, n + 1))
+    return rotulo == (1 + int(np.argmax(tamanhos)))
+
+miolo = mascara_miolo(axial)
+cor = plt.cm.gray(cinza(axial))[..., :3]
+cor[miolo] = 0.55 * cor[miolo] + 0.45 * np.array([0.2, 0.75, 0.4])
+plt.figure(figsize=(6, 6))
+plt.imshow(cor)
+plt.axis("off")
+plt.show()
+print(f"miolo: {miolo.mean() * 100:.1f}% do corte")'''),
+    ("md", """
+## O que fica
+
+Tomografia separa pelo peso do pixel. Ressonância separa pelo sinal, e o número muda se o exame for outro peso. As duas máscaras são conta de limiar. Nenhuma das duas lê um laudo, e nenhuma separa lesão de tecido sadio.
+
+Para uma lesão virar classe, alguém marca o contorno em muitos exames. Aí o treino da aula 4 passa a ter o que aprender.
 """),
 ])

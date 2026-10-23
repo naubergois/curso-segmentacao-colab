@@ -11,7 +11,12 @@ import nbformat as nbf
 
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 PROGRESSO_PARCIAL = re.compile(r"\b\d{1,2}% [━─╸]")
-RUIDO = ("New https://pypi.org/project/ultralytics", "engine/trainer: ", " 0% ─")
+RUIDO = (
+    "New https://pypi.org/project/ultralytics",
+    "engine/trainer: ",
+    " 0% ─",
+    "command not found: pip",
+)
 
 
 def limpar_texto(texto, prefixos):

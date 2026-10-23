@@ -8,6 +8,8 @@ A caixa em volta do leito leva o chão junto. Na obra, a caixa do operário leva
 | 2. Segmentação em vídeo | [![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/notebooks/02-segmentacao-em-video.ipynb) |
 | 3. Medir a máscara | [![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/notebooks/03-medir-a-mascara.ipynb) |
 | 4. Treinar segmentação | [![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/notebooks/04-treinar-segmentacao.ipynb) |
+| 5. Tomografia | [![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/notebooks/05-tomografia.ipynb) |
+| 6. Ressonância | [![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naubergois/curso-segmentacao-colab/blob/main/notebooks/06-ressonancia.ipynb) |
 
 No Colab, use **Ambiente de execução → Executar tudo**. As aulas 1 a 3 rodam em CPU. Na aula 4, uma GPU T4 ajuda.
 
@@ -51,7 +53,9 @@ Ficam em `midia/` e o Colab baixa do próprio repositório.
 - `operarios.jpg`: Justine Belson, U.S. Fish and Wildlife Service, domínio público
 - `canteiro.jpg`: Neb, CC BY-SA 4.0
 
-Origem: Wikimedia Commons. O modelo segue nas 80 classes do COCO. Ele pinta leito, cadeira, pessoa e caminhão. Não pinta trinca nem estrutura clínica.
+Origem: Wikimedia Commons. O modelo segue nas 80 classes do COCO. Ele pinta leito, cadeira, pessoa e caminhão.
+
+A tomografia e a ressonância não passam por esse modelo. Os volumes vêm do [3D Slicer](https://www.slicer.org/): CTChest e MRHead. A máscara sai da densidade, no tórax, e do sinal, na cabeça. Isso ainda não marca lesão.
 
 ## Exercícios
 

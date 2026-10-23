@@ -110,7 +110,7 @@ def pagina():
   <header>
     <h1>Segmentação na prática: <span>a forma, não só a caixa</span></h1>
     <p class="lead">O retângulo em volta do leito leva junto o chão, a cortina e um pedaço da parede. Na obra, a caixa do operário leva a picareta, a lama e um pedaço do céu. A segmentação devolve o contorno: uma máscara só com os pixels do objeto.</p>
-    <p class="lead">As fotos são de enfermaria e de canteiro. O modelo conhece leito, cadeira, pessoa e caminhão. Trinca no concreto e estrutura numa foto clínica ficam de fora: isso pede o contorno marcado à mão.</p>
+    <p class="lead">Enfermaria e canteiro passam pelo modelo das 80 classes. Tomografia e ressonância são outro exame: o corte é uma grade de densidade ou de sinal, e a máscara sai dessa grade. Isso ainda não é um laudo.</p>
     <p class="lead">Cada notebook abre no Google Colab. Você escreve a resposta, roda a célula e ele diz na hora se acertou. <a href="#exercicios">Ver os 24 exercícios</a>.</p>
   </header>
 
@@ -165,6 +165,28 @@ def pagina():
       </div>
     </article>
 
+    <article class="aula">
+      <div class="midia"><img src="assets/tomografia-seg.jpg" alt="Tomografia de tórax com o pulmão pintado pela máscara" loading="lazy"></div>
+      <div class="corpo">
+        <span class="num">AULA 5</span>
+        <h3>Tomografia</h3>
+        <p>O corte do tórax é densidade. Osso estoura no branco, ar fica preto. A máscara do pulmão é o ar que está dentro do corpo, não o ar de fora.</p>
+        <div class="meta">CPU · cerca de 1 minuto · volume de 40 MB</div>
+        <a class="botao" href="{colab_url("notebooks/05-tomografia.ipynb")}" target="_blank" rel="noopener">Abrir no Colab</a>
+      </div>
+    </article>
+
+    <article class="aula">
+      <div class="midia"><img src="assets/ressonancia-seg.jpg" alt="Ressonância da cabeça com o cérebro pintado pela máscara" loading="lazy"></div>
+      <div class="corpo">
+        <span class="num">AULA 6</span>
+        <h3>Ressonância</h3>
+        <p>O mesmo volume, dois cortes: um pelos olhos, outro de lado. A máscara é o maior bloco de sinal. O crânio fica de fora. Lesão ainda não tem classe.</p>
+        <div class="meta">CPU · cerca de 1 minuto · volume de 7 MB</div>
+        <a class="botao" href="{colab_url("notebooks/06-ressonancia.ipynb")}" target="_blank" rel="noopener">Abrir no Colab</a>
+      </div>
+    </article>
+
   </div>
 
   <h2 id="exercicios">Os 24 exercícios</h2>
@@ -187,6 +209,8 @@ def pagina():
     A detecção com caixas está em <a href="https://naubergois.com/curso-yolo/">YOLO na prática</a>.
     Enfermaria: Tomasz Sienicki, domínio público. Operários: Justine Belson, U.S. Fish and Wildlife Service, domínio público.
     Canteiro: Neb, CC BY-SA 4.0. Vídeo da obra da D8: Juandev, CC BY-SA 3.0. Tudo via Wikimedia Commons.
+    Tomografia: CTChest, amostra do <a href="https://www.slicer.org/">3D Slicer</a>.
+    Ressonância: MRHead, doada ao 3D Slicer para uso sem restrição.
     <br>Nauber Gois · <a href="https://naubergois.com">naubergois.com</a>
   </footer>
 </main>

@@ -8,6 +8,15 @@ FOTO_ENFERMARIA = f"{MIDIA}/enfermaria.jpg"
 VIDEO_OBRA = f"{MIDIA}/obra.mp4"
 FOTO_OPERARIOS = f"{MIDIA}/operarios.jpg"
 FOTO_CANTEIRO = f"{MIDIA}/canteiro.jpg"
+# Volumes de exemplo do 3D Slicer. A cabeça foi doada para uso sem restrição.
+CT_TORAX = (
+    "https://github.com/Slicer/SlicerTestingData/releases/download/"
+    "SHA256/4507b664690840abb6cb9af2d919377ffc4ef75b167cb6fd0f747befdb12e38e"
+)
+RM_CABECA = (
+    "https://github.com/Slicer/SlicerTestingData/releases/download/"
+    "SHA256/cc211f0dfd9a05ca3841ce1141b292898b2dd2d3f08286affadf823a7e58df93"
+)
 
 INSTALL = "!pip install -q ultralytics"
 

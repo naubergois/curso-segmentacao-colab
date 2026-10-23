@@ -13,6 +13,7 @@ from pathlib import Path
 import nbformat as nbf
 
 from comum import (
+    FOTO_CANTEIRO,
     FOTO_ENFERMARIA,
     FOTO_OPERARIOS,
     HELPERS,
@@ -87,7 +88,17 @@ while quadros < MAX_QUADROS:
 cap.release()
 
 print(f"{{largura}}x{{altura}} a {{fps}} FPS, {{quadros}} quadros")
-print(pixels.most_common(3))''',
+print(pixels.most_common(3))
+
+import matplotlib.pyplot as plt
+cap = cv2.VideoCapture(video)
+ok, frame = cap.read()
+cap.release()
+if ok:
+    plt.figure(figsize=(8, 4.5))
+    plt.imshow(model(frame, verbose=False)[0].plot()[:, :, ::-1])
+    plt.axis("off")
+    plt.show()''',
     },
     "03-medir-a-mascara.ipynb": {
         "nome": "Medir a máscara",
@@ -113,8 +124,9 @@ print(len(mascaras), "máscaras")''',
         "nome": "Treinar segmentação",
         "install": INSTALL,
         "contexto": "A preparação treina o YOLOv8-seg por três épocas no `coco8-seg`, como na aula 4. Ficam prontos o `df`, com as métricas de cada época, e o `melhor`, que é o modelo treinado.",
-        "setup": '''from pathlib import Path
+        "setup": f'''from pathlib import Path
 
+import matplotlib.pyplot as plt
 import pandas as pd
 from ultralytics import YOLO
 from ultralytics.utils import DATASETS_DIR
@@ -129,7 +141,13 @@ df = pd.read_csv(pasta / "results.csv")
 df.columns = df.columns.str.strip()
 melhor = YOLO(pasta / "weights" / "best.pt")
 
-print(df[["epoch", "train/box_loss", "train/seg_loss", "metrics/mAP50(M)"]].to_string(index=False))''',
+print(df[["epoch", "train/box_loss", "train/seg_loss", "metrics/mAP50(M)"]].to_string(index=False))
+r = melhor("{FOTO_CANTEIRO}", verbose=False)[0]
+plt.figure(figsize=(8, 4.5))
+plt.imshow(r.plot()[:, :, ::-1])
+plt.axis("off")
+plt.show()
+print(0 if r.masks is None else len(r.masks), "máscaras no canteiro")''',
     },
 }
 
@@ -150,9 +168,12 @@ def lista_exercicios():
 
 
 def gerar():
+    somente = os.environ.get("SOMENTE", "")
     todos = lista_exercicios()
     OUT.mkdir(exist_ok=True)
     for i, (aula_nb, k, n, ex, arquivo) in enumerate(todos):
+        if somente and aula_nb not in somente.split(","):
+            continue
         info = AULAS[aula_nb]
         proximo = todos[i + 1] if i + 1 < len(todos) else None
         aula_url = colab_url(f"notebooks/{aula_nb}")
