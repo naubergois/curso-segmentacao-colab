@@ -11,7 +11,7 @@ PORTAL = Path("/Volumes/NAUBER/portal-nauber/public/curso-segmentacao")
 REPO = "https://github.com/naubergois/curso-segmentacao-colab"
 
 ROTULO = {1: "Imagem", 2: "Vídeo", 3: "Medida", 4: "Treino"}
-CAPA = {1: "onibus-seg.jpg", 2: "sala-seg.jpg", 3: "medida-seg.jpg", 4: "poligono-seg.jpg"}
+CAPA = {1: "onibus-seg.jpg", 2: "patio-seg.jpg", 3: "medida-seg.jpg", 4: "poligono-seg.jpg"}
 
 
 def inline(texto):
@@ -133,7 +133,7 @@ def pagina():
     </article>
 
     <article class="aula">
-      <div class="midia"><video src="assets/sala-seg.mp4" poster="assets/sala-seg.jpg" muted loop playsinline preload="none" onmouseenter="this.play()" onmouseleave="this.pause()"></video></div>
+      <div class="midia"><video src="assets/patio-seg.mp4" poster="assets/patio-seg.jpg" muted loop playsinline preload="none" onmouseenter="this.play()" onmouseleave="this.pause()"></video></div>
       <div class="corpo">
         <span class="num">AULA 2</span>
         <h3>Segmentação em vídeo</h3>
