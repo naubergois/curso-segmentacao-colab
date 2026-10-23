@@ -133,7 +133,7 @@ def pagina():
     </article>
 
     <article class="aula">
-      <div class="midia"><video src="assets/patio-seg.mp4" poster="assets/patio-seg.jpg" muted loop playsinline preload="none" onmouseenter="this.play()" onmouseleave="this.pause()"></video></div>
+      <div class="midia"><img src="assets/patio-seg.jpg" alt="Pessoas no pátio pintadas pela máscara, sem retângulo" loading="lazy"></div>
       <div class="corpo">
         <span class="num">AULA 2</span>
         <h3>Segmentação em vídeo</h3>
